@@ -61,7 +61,7 @@ void Print ( const int& , std::ostream &, const std::string&, const int& ) ;
 
 
 void Print ( const std::string&, std::ostream &, const int& );
-void Print ( const std::string& , std::ostream&  );
+void Print ( const std::string& , std::ostream& );
 void Print ( const std::string&, std::ostream &, const std::string& );
 void Print ( const std::string&, std::ostream &, const int&, const std::string& );
 
@@ -75,6 +75,7 @@ void histogram ( std::vector<double> const&, double const&, std::vector<double> 
 void NormaliseHistogram ( std::vector<double>&, double const& );
 std::string int2string ( const int& );
 std::string stringPlusInt ( const std::string &, const int & );
+std::string stringPlusDouble ( const std::string &, const double & );
 
 double average ( std::vector<double>& );
 double average2 ( std::vector<double>& );

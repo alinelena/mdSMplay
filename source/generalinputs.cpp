@@ -27,11 +27,10 @@
 #include "generalinputs.h"
 
 
-generalInputs::~generalInputs()
-{
+generalInputs::~generalInputs() {
     if ( log.is_open() ) log.close();
     if ( debug.is_open() ) debug.close();
 
-}
+    }
 
-// kate: indent-mode cstyle; space-indent on; indent-width 4; 
+// kate: indent-mode cstyle; space-indent on; indent-width 4;

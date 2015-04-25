@@ -46,17 +46,15 @@ int utils::nint ( const double& a ) {
     }
 
 double utils::LennardJones ( const double& r ) {
-    double r3=r*r*r/ ( utils::sigma*utils::sigma*utils::sigma );
-    double r6=r3*r3;
-    double r12=r6*r6;
-    return ( 4.0*utils::epsilon* ( 1.0/r12-1.0/r6 ) );
+    double r2= ( ( utils::sigma*utils::sigma ) / ( r*r ) );
+    double r6=r2*r2*r2;
+    return ( 4.0*utils::epsilon* ( r6*r6-r6 ) );
     }
 
 double utils::LennardJonesdR ( const double& r ) {
-    double r3=r*r*r/ ( utils::sigma*utils::sigma*utils::sigma );
-    double r6=r3*r3;
-    double r12=r6*r6;
-    return ( -48.0*utils::epsilon/r* ( 1.0/r12-0.5/r6 ) );
+    double r2= ( ( utils::sigma*utils::sigma ) / ( r*r ) );
+    double r6=r2*r2*r2;
+    return ( 48.0*utils::epsilon* ( r6*r6-0.5*r6 ) /r );
     }
 
 void utils::Print ( const double& a, ostream &o, const int& ww, const int&wpre ) {
@@ -117,9 +115,9 @@ void utils::Print ( const string& s, ostream& o,const int& ww ) {
     o << s<<" ";
     }
 
-void utils::Print(const string& s, ostream& o){
+void utils::Print ( const string& s, ostream& o ) {
     utils::Print ( s,o,utils::w );
-}
+    }
 
 
 void utils::Print ( const string& s, ostream& o, const string& c ) {
@@ -187,6 +185,13 @@ string utils::stringPlusInt ( const string& w,const int& n ) {
     s <<w<< n;
     return s.str();
     }
+
+string utils::stringPlusDouble ( const string& w, const double& n ) {
+    stringstream s;
+    s <<w<< n;
+    return s.str();
+    }
+
 
 double utils::average ( std::vector< double >& a ) {
     double sum=0.0;

@@ -31,6 +31,7 @@
 #include <cmath>
 #include "utils.h"
 #include "atom.h"
+#include <stdlib.h>
 using namespace std;
 
 void atom::print ( ostream &o ) const {
@@ -77,7 +78,6 @@ void atom::setPositions ( double const& p, double const& q, double const& r ) {
 void atom::setForces ( const double& p, const double& q, const double& r ) {
     fx=p;
     fy=q;
-    void putInBox ( const double& );
     fz=r;
     }
 
@@ -94,15 +94,15 @@ void atom::setVelocities ( const double& p, const double& q, const double& r ) {
     }
 
 void atom::updatePositionsVV ( const double& dt ) {
-    x+=vx*dt+fx/mass/2.0*dt*dt;
-    y+=vy*dt+fy/mass/2.0*dt*dt;
-    z+=vz*dt+fz/mass/2.0*dt*dt;
+    x+=vx*dt+fx/ ( mass*2.0 ) *dt*dt;
+    y+=vy*dt+fy/ ( mass*2.0 ) *dt*dt;
+    z+=vz*dt+fz/ ( mass*2.0 ) *dt*dt;
     }
 
 void atom::updateVelocitiesVV ( const double& dt ) {
-    vx+= ( fx ) /mass/2.0*dt;
-    vy+= ( fy ) /mass/2.0*dt;
-    vz+= ( fz ) /mass/2.0*dt;
+    vx+= ( fx ) / ( mass*2.0 ) *dt;
+    vy+= ( fy ) / ( mass*2.0 ) *dt;
+    vz+= ( fz ) / ( mass*2.0 ) *dt;
     }
 
 void atom::setMass ( const double& m ) {
@@ -111,9 +111,9 @@ void atom::setMass ( const double& m ) {
 
 
 void atom::putInBox ( const double& a ) {
-    x-=utils::nint ( x/a ) *a;
-    y-=utils::nint ( y/a ) *a;
-    z-=utils::nint ( z/a ) *a;
+    if ( ( x<=0.0 ) || ( x>a ) ) x-=utils::nint ( x/a ) *a;
+    if ( ( y<=0.0 ) || ( y>a ) ) y-=utils::nint ( y/a ) *a;
+    if ( ( z<=0.0 ) || ( z>a ) ) z-=utils::nint ( z/a ) *a;
     }
 
 void atom::scaleVelocity ( const double& a, const double& b, const double& c ) {
@@ -177,8 +177,6 @@ void dr ( vector<double>& x, atom const &i, atom const &j, double const& a ) {
     }
 
 
-
-
 double rdr ( vector<double>& g, atom const &i, atom const &j, double const& a ) {
     dr ( g,i,j,a );
 
@@ -197,7 +195,6 @@ void atom::dr ( vector<double>& x,  atom const &j, double const& a ) {
 
 double atom::rdr ( vector<double>& g, atom const &j, double const& a ) {
     this->dr ( g,j,a );
-
     return sqrt ( g[0]*g[0]+g[1]*g[1]+g[2]*g[2] );
     }
 
@@ -223,50 +220,49 @@ double VCM ( vector< atom >& a ) {
     return sqrt ( a1*a1+a2*a2+a3*a3 );
     }
 
-double PotentialEnergy ( vector<atom> const& a, const double& rc, const double& box, double & vir ) {
+double PotentialEnergy ( vector<atom> const& a, const double& rc, const double& box, const bool& shift,double & vir ) {
     double R,energy;
     vector<double> dR ( 3 );
     vir =0.0;
-    double ec=utils::LennardJones ( rc );
+    double ec=0.0;
+    if ( shift ) ec=utils::LennardJones ( rc );
     energy=0.0;
     for ( int i=0; i<a.size()-1; i++ ) {
         for ( int j=i+1; j<a.size(); j++ ) {
             R=rdr ( dR,a[i],a[j],box );
-
             if ( R<rc ) {
                 energy+=utils::LennardJones ( R )-ec;
-                vir+=utils::LennardJonesdR(R)*R;
+                vir+=utils::LennardJonesdR ( R ) *R;
                 }
             }
         }
-
     return energy;
 
     }
 
-double atom::myPotentialEnergy ( vector< atom >& a , const double& rc, const double& box, double& vir ) {
+double atom::myPotentialEnergy ( vector< atom >& a , const double& rc, const double& box, const bool& shift,double& vir ) {
 
     double R,energy;
     vector<double> dR ( 3 );
-    double ec=utils::LennardJones ( rc );
+    double ec=0.0;
+    if ( shift ) ec=utils::LennardJones ( rc );
     energy=0.0;
     vir =0.0;
-    for ( int it=0; it<this->id; it++ ) {
-        R=this->rdr ( dR,a[it],box );
-        if ( R<utils::zero ) return utils::infinity;
+    for ( int it=0; it<id; it++ ) {
+        R=rdr ( dR,a[it],box );
+//         if ( R<utils::zero ) return utils::infinity;
         if ( R<rc ) {
             energy+=utils::LennardJones ( R )-ec;
-            vir+=utils::LennardJonesdR(R)*R;
+            vir+=utils::LennardJonesdR ( R ) *R;
             }
         }
 
-    for ( int it=this->id+1; it<a.size(); it++ ) {
-
-        R=this->rdr ( dR,a[it],box );
-        if ( R<utils::zero ) return utils::infinity;
+    for ( int it=id+1; it<a.size(); it++ ) {
+        R=rdr ( dR,a[it],box );
+//         if ( R<utils::zero ) return utils::infinity;
         if ( R<rc ) {
             energy+=utils::LennardJones ( R )-ec;
-            vir+=utils::LennardJonesdR(R)*R;
+            vir+=utils::LennardJonesdR ( R ) *R;
             }
         }
     return energy;
@@ -288,23 +284,23 @@ void atom::updateVelocitiesVEC ( const double& h, const double&s ) {
 
     double ss=s*sqrt ( gamma/mass );
     double ax=0.5*h* ( 1.0-0.25*h*gamma );
-    vx=vx+ ( fx/mass-gamma*vx ) *ax+utils::AH ( h,xi[0],eta[0],gamma,ss );
-    vy=vy+ ( fy/mass-gamma*vy ) *ax+utils::AH ( h,xi[1],eta[1],gamma,ss );
-    vz=vz+ ( fz/mass-gamma*vz ) *ax+utils::AH ( h,xi[2],eta[2],gamma,ss );
+    vx+= ( fx/mass-gamma*vx ) *ax+utils::AH ( h,xi[0],eta[0],gamma,ss );
+    vy+= ( fy/mass-gamma*vy ) *ax+utils::AH ( h,xi[1],eta[1],gamma,ss );
+    vz+= ( fz/mass-gamma*vz ) *ax+utils::AH ( h,xi[2],eta[2],gamma,ss );
     }
 
 void atom::updatePositionsVEC ( const double& h, const double& s ) {
     double ss=s*sqrt ( gamma/mass );
-    x=x+h*vx+ss*eta[0];
-    y=y+h*vy+ss*eta[1];
-    z=z+h*vz+ss*eta[2];
+    x+=h*vx+ss*eta[0];
+    y+=h*vy+ss*eta[1];
+    z+=h*vz+ss*eta[2];
     }
 
 
 void atom::randomMove ( const double& dr, const double& a, const double& b, const double& c ) {
-    x=x+ ( a-0.5 ) *dr;
-    y=y+ ( b-0.5 ) *dr;
-    z=z+ ( c-0.5 ) *dr;
+    x+= ( a-0.5 ) *dr;
+    y+= ( b-0.5 ) *dr;
+    z+= ( c-0.5 ) *dr;
     }
 
 void atom::saveOldPositions ( double& xo, double& yo, double& zo ) {

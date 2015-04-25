@@ -43,18 +43,24 @@ void mdRepLine ( double const&, double const&,double const&,double const&,double
 int printHistogram ( std::vector<double> const&, double const&,double const&,std::string const& );
 
 void mdTAMDHeader ( const std::vector<colVar>&, std::ostream&, bool const & );
-void mdTAMDRepLine ( double const&, double const&,double const&,double const&,double const&,double const&,double const&,double const&,const std::vector<colVar>&,bool const&, std::ostream& );
+void mdTAMDRepLine ( const double& , const double& , const double& , const double& , const double& , const double& , const double& , const double& , const double& , const std::vector<colVar>& , const bool& fancy, std::ostream& );
 
 void MMCRepLine ( const int&,double const&,double const&,const bool&,std::ostream& );
 void MMCHeader ( std::ostream&, bool const & );
 
 void mdTAMCHeader ( const std::vector<colVar>&, std::ostream&, bool const & );
-void mdTAMCRepLine ( double const&, double const&,double const&,const std::vector<colVar>&,bool const&, std::ostream& );
+void mdTAMCRepLine ( const double& , const double& , const double& , const double&, const double&, const std::vector< colVar >& , const bool&, std::ostream& );
 void logInput ( generalInputs& );
 void logLine ( std::string const&, const double&, std::ostream& );
 void logLine ( std::string const&, const int&, std::ostream& );
 void logLine ( std::string const&, std::string const&, std::ostream& );
 void logLine ( std::string const&, std::string const&, std::ostream&, const int& );
+void logInfo ( std::string const&, const double&, std::ostream& );
+void logInfo ( std::string const&, const int&, std::ostream& );
+void logInfo ( std::string const&, std::string const&, std::ostream& );
+void logInfo ( std::string const&, std::string const&, std::ostream&, const int& );
+
+void logCV(std::vector<colVar> &, std::ostream& );
 void timeStamp ( std::string const&,std::ostream& );
 }
 

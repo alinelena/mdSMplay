@@ -102,13 +102,16 @@ class atom {
             return fz;
             };
         double force() const;
+        int gID() {
+            return id;
+            }
         void randomMove ( double const&, double const&, double const&, double const& );
         friend double r ( atom const&, atom const& );
         friend double r ( atom const&, atom const&, double const& );
         friend void dr ( std::vector<double>&, atom const&, atom const&, double const& );
         friend double rdr ( std::vector<double>&, atom const&, atom const&, double const& );
         friend double KineticEnergy ( std::vector<atom>& );
-        friend double PotentialEnergy ( std::vector<atom> const& , const double& , const double&, double& );
+        friend double PotentialEnergy ( std::vector<atom> const& , const double& , const double&, const bool&, double& );
         friend double VCM ( std::vector<atom>& );
         friend double density ( std::vector<atom>&, const double& );
         virtual ~atom() {
@@ -119,7 +122,7 @@ class atom {
         void saveOldPositions ( double&, double&, double& );
         void dr ( std::vector<double>&,atom const&, double const& );
         double rdr ( std::vector<double>&, atom const&, double const& );
-        double myPotentialEnergy ( std::vector<atom> & , const double& , const double&, double& );
+        double myPotentialEnergy ( std::vector<atom> & , const double& , const double&, const bool&, double& );
     };
 
 #endif // ATOM_H

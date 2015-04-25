@@ -43,15 +43,16 @@ namespace solution {
 void InitializeSimulation ( std::vector<atom>&, const double& ,  const double &, const int&, std::string const& );
 void InitializeSimulation ( std::vector<atom>& , std::string const& );
 void InitializeSimulation ( std::vector<atom>&, const double& ,  const double &, const int&, std::string const&, const double& );
+void RandomVelocities ( std::vector<atom>& , const double& , const double& , const int& );
+void GenerateLattice ( std::vector< atom >& , const double& , const int& , const double& , double&, const std::string&  );
 
 
-
-/// computes the center of mass velocity
+/// computes the centre of mass velocity
 void centerOfMassV ( std::vector<atom>& );
 /// scales the velocities to a certain temperature/kinetic energy
 void scaleVelocities ( std::vector<atom>&, const double& );
 
-/// comnputes forces on oll atoms
+/// computes forces on oll atoms
 double computeForces ( std::vector<atom> &, const double &, const double &, double& );
 ///velocity verlet integrator
 double velocityVerlet ( std::vector<atom> &, const double &, const double &,const double&, double &, double& );
@@ -67,21 +68,24 @@ void MDDriverVEC ( std::vector<atom>&, generalInputs& );
 /// driver for TAMD
 void MDDriverTAMD ( std::vector<atom>&, std::vector<colVar>&, generalInputs& );
 /// TAMD integrator
-double TAMDIntegrator ( std::vector<atom> &, std::vector<colVar>&, const double &, const double &,const double&, const double &, const double&,const double&,double &, double& );
+double TAMDIntegrator ( std::vector< atom >& , std::vector<colVar>&, const double& , const double& , const double& , const double& , const double& , const double& , double& , double&, double& );
 /// Computes  forces for TAMD method
 double computeForcesTAMD ( std::vector<atom> &, std::vector<colVar>&,const double &, const double &, double& );
 ///  metropolis monte carlo driver
 void MMCDriver ( std::vector<atom>&, generalInputs& );
-/// oprtimal displacementin MC so acceptacne rate is around 1/2
-void optimalDr(double&, int&,int&, const int&,const int&, double const &);
+/// optimal displacement in MC so acceptacne rate is around 1/2
+void optimalDr ( double&, int&,int&, const int&,const int&, double const & );
 
 /// driver for TAMC
 void MDDriverTAMC ( std::vector<atom>&, std::vector<colVar>&, generalInputs& );
-
+/// driver for TAHMC
+void MDDriverTAHMC ( std::vector<atom>&, std::vector<colVar>&, generalInputs& );
+void zHMCSampler(std::vector< atom >& , std::vector<colVar>& , generalInputs &, const int&,
+                 std::vector<double>& , std::vector<double>& );
 /// prints to a file the normalised histogram of a set of values
-void histogramWrapper(std::vector<double>&, const double&, const std::string& );
+void histogramWrapper ( std::vector<double>&, const double&, const std::string& );
 
 }
 
 #endif // SOLUTION_H
-// kate: indent-mode cstyle; space-indent on; indent-width 4;
+// kate: indent-mode cstyle; replace-tabs on; 

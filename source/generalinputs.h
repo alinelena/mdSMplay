@@ -37,7 +37,6 @@ class generalInputs
 public:
     std::vector<int> seeds;
     std::ofstream log, debug;
-//     std::ostream screen;
     bool fancy;
     double TBath;
     double T0;
@@ -53,12 +52,22 @@ public:
     int mcsteps;
     int mccycles;
     double dr;
+    double rho;
+    double N;
+    int nEquil;
     std::string filename;
     std::string xyz;
     std::string name;
     std::string sampler;
     std::string logf;
     std::string dbgf;
+    std::string el;
+    double mass;
+    bool shift;
+    double mu;
+    double zk;    
+    int Nz;
+    double dtz;
     generalInputs(){}
     virtual ~generalInputs();
 };

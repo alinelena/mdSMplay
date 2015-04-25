@@ -10,6 +10,7 @@
 #include "gutenberg.h"
 #include "generalinputs.h"
 #include "collectivevariable.h"
+#include "reading.h"
 
 
 
@@ -35,36 +36,57 @@ int main ( int argc, char **argv ) {
     inps.dr=0.2;
     inps.T0=1.0;
     inps.TBath=1.0;
-    inps.sampler="VV";
+    inps.sampler="";
     inps.gamma=1.0;
     inps.gCV=10.0;
     inps.logf="mcplay.log";
     inps.dbgf="mcplay.debug";
+    inps.N=216;
+    inps.rho=0.5;
+    inps.mass=1.0;
+    inps.mu=1.0;
+    inps.nEquil=300;
+    inps.zk=50.0;
+    inps.shift = false;
+    inps.Nz=10;
+    inps.dtz=0.002;
+    inps.el="Ar";
+    
 
 
     for ( int i=1; i<argc; i++ ) {
         if ( !strcmp ( argv[i],"-steps" ) ) inps.nSteps=atoi ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-NzSteps" ) ) inps.Nz=atoi ( argv[++i] );    
         else if ( !strcmp ( argv[i],"-L" ) ) inps.box=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-seed" ) ) inps.seeds.push_back ( atoi ( argv[++i] ) );
         else if ( !strcmp ( argv[i],"-dt" ) ) inps.dt=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-dtz" ) ) inps.dtz=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-freq" ) ) inps.frequency=atoi ( argv[++i] );
         else if ( !strcmp ( argv[i],"-xyz" ) ) inps.xyz=argv[++i];
         else if ( !strcmp ( argv[i],"-inp" ) ) inps.filename=argv[++i];
         else if ( !strcmp ( argv[i],"-cut" ) ) inps.cut=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-T0" ) ) inps.T0=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-Tb" ) ) inps.TBath=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-Tvc" ) ) inps.Tcv=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-Tcv" ) ) inps.Tcv=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-gamma" ) ) inps.gamma=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-gCV" ) ) inps.gCV=atof ( argv[++i] );
         else if ( !strcmp ( argv[i],"-bin" ) ) inps.bin=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-fancy" ) ) inps.fancy= atoi (argv[++i])!=0?true:false;
+        else if ( !strcmp ( argv[i],"-fancy" ) ) inps.fancy= atoi ( argv[++i] ) !=0?true:false;
         else if ( !strcmp ( argv[i],"-samp" ) ) inps.sampler=argv[++i];
         else if ( !strcmp ( argv[i],"-log" ) ) inps.logf=argv[++i];
         else if ( !strcmp ( argv[i],"-dbg" ) ) inps.dbgf=argv[++i];
         else if ( !strcmp ( argv[i],"-name" ) ) inps.name=argv[++i];
         else if ( !strcmp ( argv[i],"-mcsteps" ) ) inps.mcsteps=atoi ( argv[++i] );
         else if ( !strcmp ( argv[i],"-mccycles" ) ) inps.mccycles=atoi ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-equil" ) ) inps.nEquil=atoi ( argv[++i] );
         else if ( !strcmp ( argv[i],"-dr" ) ) inps.dr=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-rho" ) ) inps.rho=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-N" ) ) inps.N=atoi ( argv[++i] );        
+        else if ( !strcmp ( argv[i],"-mass" ) ) inps.mass=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-zmu" ) ) inps.mu=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-zk" ) ) inps.zk=atof ( argv[++i] );
+        else if ( !strcmp ( argv[i],"-shift" ) ) inps.shift=atoi ( argv[++i] ) !=0?true:false;
+        else if ( !strcmp ( argv[i],"-el" ) ) inps.el=argv[++i];
         else if ( !strcmp ( argv[i],"-h" ) ) {
             utils::Print ( "usage: ", cout,colours::red );
             cout<<endl;
@@ -72,15 +94,30 @@ int main ( int argc, char **argv ) {
             cout <<endl;
             utils::Print ( "-steps",cout,colours::green );
             utils::Print ( "<int> number of steps",cout,colours::purple );
+            cout<<endl;            
+            utils::Print ( "-NzSteps",cout,colours::green );
+            utils::Print ( "<int> number of steps for z only for TAHMC",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-L",cout,colours::green );
             utils::Print ( "<double> box size",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-N",cout,colours::green );
+            utils::Print ( "<int> number of particles to be used in simulation",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-rho",cout,colours::green );
+            utils::Print ( "<double> density of the system",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-mass",cout,colours::green );
+            utils::Print ( "<double> mass of a particle",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-seed",cout,colours::green );
             utils::Print ( "<int> seed for random generator",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-dt" ,cout,colours::green );
             utils::Print ( "<double> timestep for integrator",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-dtz" ,cout,colours::green );
+            utils::Print ( "<double> timestep for z integrator",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-freq",cout,colours::green );
             utils::Print ( "<int> frequency to print xyz files",cout,colours::purple );
@@ -93,6 +130,9 @@ int main ( int argc, char **argv ) {
             cout<<endl;
             utils::Print ( "-cut" ,cout,colours::green );
             utils::Print ( "<double> cutoff for LJ",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-shift" ,cout,colours::green );
+            utils::Print ( "<int> as logical on/off energy shifting for LJ potential",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-bin" ,cout,colours::green );
             utils::Print ( "<double> width of bin in histograms",cout,colours::purple );
@@ -112,11 +152,17 @@ int main ( int argc, char **argv ) {
             utils::Print ( "-gCV" ,cout,colours::green );
             utils::Print ( "<double> friction coefficient for CV",cout,colours::purple );
             cout<<endl;
+            utils::Print ( "-zmu" ,cout,colours::green );
+            utils::Print ( "<double> mass for CV",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-zk" ,cout,colours::green );
+            utils::Print ( "<double> coupling contanr for CV and x",cout,colours::purple );
+            cout<<endl;
             utils::Print ( "-fancy" ,cout,colours::green );
             utils::Print ( "<int> as logical,  enable/discable colours",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-samp" ,cout,colours::green );
-            utils::Print ( "<string> sampler available VV, VEC, TAMD, MMC, TAMC",cout,colours::purple );
+            utils::Print ( "<string> sampler available VV, VEC, TAMD, MMC, TAMC, TAHMC",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-log" ,cout,colours::green );
             utils::Print ( "<string> name for log file ",cout,colours::purple );
@@ -133,8 +179,14 @@ int main ( int argc, char **argv ) {
             utils::Print ( "-mccycles",cout,colours::green );
             utils::Print ( "<int> number of monte carlo cycles",cout,colours::purple );
             cout<<endl;
+            utils::Print ( "-equil",cout,colours::green );
+            utils::Print ( "<int> number of equilibration steps",cout,colours::purple );
+            cout<<endl;
             utils::Print ( "-dr" ,cout,colours::green );
             utils::Print ( "<double> maximum MC displacement in one direction",cout,colours::purple );
+            cout<<endl;
+            utils::Print ( "-el" ,cout,colours::green );
+            utils::Print ( "<string> name for the element ",cout,colours::purple );
             cout<<endl;
             utils::Print ( "-h" ,cout,colours::green );
             utils::Print ( "this help ",cout,colours::purple );
@@ -142,7 +194,8 @@ int main ( int argc, char **argv ) {
             return -1;
             }
         }
-        if (inps.seeds.size()==0) inps.seeds.push_back ( 12345 );
+    if ( inps.seeds.size() ==0 ) inps.seeds.push_back ( 12345 );
+    inps.cut=min<double> ( inps.cut,inps.box/2.0 );
 
     vector<atom> a;
 //     vector<colVar> cv(2);
@@ -150,52 +203,69 @@ int main ( int argc, char **argv ) {
     inps.log.open ( inps.logf.c_str(),ios::out );
     inps.debug.open ( inps.dbgf.c_str(),ios::out );
 
-    gutenberg::timeStamp("start time:",inps.log);
+    gutenberg::timeStamp ( "start time:",inps.log );
+    for ( int i=0; i<argc; i++ ) {
+        utils::Print ( argv[i],inps.log,colours::yellow );
+        }
+    inps.log<<endl;
     if ( inps.sampler== "VV" ) {
         solution::InitializeSimulation ( a,inps.T0,inps.box,inps.seeds[0], inps.filename );
-        gutenberg::logInput(inps);
+        gutenberg::logInput ( inps );
         solution::MDDriverVV ( a,inps );
         }
     else if ( inps.sampler== "VEC" ) {
         solution::InitializeSimulation ( a,inps.T0,inps.box,inps.seeds[0], inps.filename,inps.gamma );
-        gutenberg::logInput(inps);
+        gutenberg::logInput ( inps );
         solution::MDDriverVEC ( a,inps );
         }
     else if ( inps.sampler== "TAMD" ) {
         solution::InitializeSimulation ( a,inps.T0,inps.box,inps.seeds[0], inps.filename,inps.gamma );
         vector<colVar> cv ( 2 );
-        cv[0].mu=10.0;
-        cv[1].mu=10.0;
+        cv[0].mu=inps.mu;
         cv[0].gamma=inps.gCV;
-        cv[1].gamma=inps.gCV;
-        cv[0].k=50.0;
-        cv[1].k=50.0;
+        cv[0].k=inps.zk;
         cv[0].i=1;
         cv[0].j=2;
+        cv[0].z=cv[0].theta ( a,inps.box );
+        cv[0].th=cv[0].z;
+        cv[0].v=0.0;
+        cv[0].f=0.0;
+
+        cv[1].mu=inps.mu;
+        cv[1].gamma=inps.gCV;
+        cv[1].k=inps.zk;
         cv[1].i=5;
         cv[1].j=6;
-        cv[0].z=cv[0].theta ( a,inps.box );
         cv[1].z=cv[1].theta ( a,inps.box );
-        cv[0].th=cv[0].z;
         cv[1].th=cv[1].z;
-        cv[0].v=0.0;
         cv[1].v=0.0;
-        cv[0].f=0.0;
         cv[1].f=0.0;
-        gutenberg::logInput(inps);
+        gutenberg::logInput ( inps );
+        gutenberg::logCV ( cv,inps.log );
         solution::MDDriverTAMD ( a,cv,inps );
         }
     else if ( inps.sampler== "MMC" ) {
         solution::InitializeSimulation ( a,inps.T0,inps.box,inps.seeds[0], inps.filename,inps.gamma );
         // inps.Temperature should contain the temperature of the system... so be sure it is computed if not an input
-        gutenberg::logInput(inps);
+        gutenberg::logInput ( inps );
+//        double vir;
+//         int i=105;
+//         double en=a[i].myPotentialEnergy ( a,inps.cut,inps.box,inps.shift,vir);
+//         utils::Print(en,cout,32,16);
+//         cout <<endl;
+//         vector<atom> b;
+//
+//         int l=reading::readXYZ("fort.111",b);
+//         for(int k=0;k<b.size();k++) b[k].setID(k);
+//         double em=b[i].myPotentialEnergy ( a,inps.cut,inps.box,inps.shift,vir);
+//         utils::Print(em,cout,32,16);cout<<endl;
         solution::MMCDriver ( a,inps );
         }
     else if ( inps.sampler== "TAMC" ) {
         solution::InitializeSimulation ( a,inps.T0,inps.box,inps.seeds[0], inps.filename,inps.gamma );
         vector<colVar> cv ( 2 );
-        cv[0].mu=10.0;
-        cv[1].mu=10.0;
+        cv[0].mu=inps.mu;
+        cv[1].mu=inps.mu;
         cv[0].gamma=inps.gCV;
         cv[1].gamma=inps.gCV;
         cv[0].k=50.0;
@@ -212,13 +282,41 @@ int main ( int argc, char **argv ) {
         cv[1].v=0.0;
         cv[0].f=0.0;
         cv[1].f=0.0;
-        gutenberg::logInput(inps);
+        gutenberg::logInput ( inps );
         solution::MDDriverTAMC ( a,cv,inps );
         }
+    else if ( inps.sampler== "TAHMC" ) {
+        solution::InitializeSimulation ( a,inps.T0,inps.box,inps.seeds[0], inps.filename,inps.gamma );
+        vector<colVar> cv ( 2 );
+        cv[0].mu=inps.mu;
+        cv[1].mu=inps.mu;
+        cv[0].gamma=inps.gCV;
+        cv[1].gamma=inps.gCV;
+        cv[0].k=50.0;
+        cv[1].k=50.0;
+        cv[0].i=1;
+        cv[0].j=2;
+        cv[1].i=5;
+        cv[1].j=6;
+        cv[0].z=cv[0].theta ( a,inps.box );
+        cv[1].z=cv[1].theta ( a,inps.box );
+        cv[0].th=cv[0].z;
+        cv[1].th=cv[1].z;
+        cv[0].v=0.0;
+        cv[1].v=0.0;
+        cv[0].f=0.0;
+        cv[1].f=0.0;
+        gutenberg::logInput ( inps );
+        solution::MDDriverTAHMC ( a,cv,inps );
+        }    
     else {
-        utils::Print ( "Unknown sampler\n", cout,colours::red );
+        solution::GenerateLattice ( a,inps.rho,inps.mass, inps.N,inps.box,inps.el );
+        gutenberg::printXYZ ( inps.xyz,utils::stringPlusDouble ( "LJ box ",inps.box ),a,true );
+
+        utils::Print ( "Lattice generated\n", cout,colours::yellow );
+        utils::Print ( "use -h for more info on usage\n", cout,colours::red );
         }
-    gutenberg::timeStamp("end time:",inps.log);
+    gutenberg::timeStamp ( "end time:",inps.log );
     inps.log.close();
     inps.debug.close();
     return 0;

@@ -31,10 +31,10 @@
 
 
 #include "atom.h"
-namespace reading
-{
-  int readXYZ(std::string const& , std::vector<atom>& ) ;
-  int readFull(std::string const& , std::vector<atom>& ) ;
+namespace reading {
+int readXYZ ( std::string const& , std::vector<atom>& ) ;
+int readFull ( std::string const& , std::vector<atom>& ) ;
 }
 
 #endif // READING_H
+// kate: indent-mode cstyle; space-indent on; indent-width 4;

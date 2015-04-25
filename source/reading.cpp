@@ -27,8 +27,8 @@
 #include "reading.h"
 #include <iostream>
 
-
 using namespace std;
+
 int reading::readXYZ ( string const& filename, vector<atom>& a ) {
     ifstream file ( filename.c_str(), ios::in );
     if ( file.is_open() ) {

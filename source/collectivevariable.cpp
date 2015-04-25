@@ -31,62 +31,59 @@
 
 using namespace std;
 
-void colVar::force ( const std::vector< atom >& a, const double& box )
-{
-    th=this->theta(a,box);
+void colVar::force ( const std::vector< atom >& a, const double& box ) {
+    th=this->theta ( a,box );
     f=-k* ( z-th );
-}
+    }
 
-double colVar::theta ( const std::vector< atom >& a, const double& box )
-{
+double colVar::theta ( const std::vector< atom >& a, const double& box ) {
     return r ( a[i],a[j],box );
-}
+    }
 
-void colVar::dtheta ( vector<double> w, const int&t,const std::vector< atom >&a , const double&box )
-{
+void colVar::dtheta ( vector<double> w, const int&t,const std::vector< atom >&a , const double&box ) {
     double aux=0.0,q;
     q=rdr ( w,a[i],a[j],box );
-    if ( t==i )
-    {
+    if ( t==i ) {
         w[0]=-w[0]/q;
         w[1]=-w[1]/q;
         w[2]=-w[2]/q;
-    }
-    else if ( t==j )
-    {
+        }
+    else if ( t==j ) {
         w[0]=-w[0]/q;
         w[1]=-w[1]/q;
         w[2]=-w[2]/q;
-    }
-    else
-    {
+        }
+    else {
         w[0]=0.0;
         w[1]=0.0;
         w[2]=0.0;
+        }
     }
-}
 
-void colVar::updatezvVEC ( const double& h )
-{
+void colVar::updatezvVEC ( const double& h ) {
     v=v+ ( f/mu-gamma*v ) *0.5*h* ( 1.0-0.25*h*gamma ) +utils::AH ( h,xi,eta,gamma,s );
-}
+    }
 
-void colVar::updatezpVEC ( const double& h, const double& s )
-{
-    double ss=s*sqrt ( gamma/mu );
-    z=z+h*v+ss*eta;
-}
+void colVar::updatezpVEC ( const double& h, const double& s ) {
+    z=z+h*v+s*eta*h*sqrt ( h/3.0 ) *0.5;
+    }
 
-double zpot(const vector< atom >&a , vector< colVar >& cv, const double& box){
+double zpot ( const vector< atom >&a , vector< colVar >& cv, const double& box ) {
     double mp,th;
     mp=0.0;
-    for (vector<colVar>::iterator it=cv.begin();it<cv.end();it++){
-        th=(*it).z-(*it).theta(a,box);
-        mp+=(*it).k*th*th;
+    for ( vector<colVar>::iterator it=cv.begin(); it<cv.end(); it++ ) {
+        th= ( *it ).z- ( *it ).theta ( a,box );
+        mp+= ( *it ).k*th*th;
+        }
+    return mp/2.0;
     }
- return mp/2.0;
+
+double zKin(vector<colVar>& cv){
+    double kinz=0.0;
+    for ( vector<colVar>::iterator i=cv.begin(); i<cv.end(); i++ ) {
+        kinz+= ( *i ).v* ( *i ).v* ( *i ).mu;
+        }
+    return kinz/2.0;
 }
-
-
 
 // kate: indent-mode cstyle; space-indent on; indent-width 4;

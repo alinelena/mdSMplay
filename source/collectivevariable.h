@@ -29,33 +29,32 @@
 #include <vector>
 #include "atom.h"
 
-class colVar
-{
-public:
-    double z;
-    double v;
-    double f;
-    double mu,gamma,k;
-    double s;
-    double xi,eta;
-    double th;
-    int i,j;// the collective variable is the distance r_ij
-    int type;
-    colVar() {};
-    void setNoise ( std::vector<double>const &a )
-    {
-        xi=a[0];
-        eta=a[1];
-    };
-    double theta ( std::vector<atom> const&, const double& );
-    void dtheta ( std::vector<double>, const int&, const std::vector<atom>& , const double& );
+class colVar {
+    public:
+        double z;
+        double v;
+        double f;
+        double mu,gamma,k;
+        double s;
+        double xi,eta;
+        double th;
+        int i,j;// the collective variable is the distance r_ij
+        int type;
+        colVar() {};
+        void setNoise ( std::vector<double>const &a ) {
+            xi=a[0];
+            eta=a[1];
+            };
+        double theta ( std::vector<atom> const&, const double& );
+        void dtheta ( std::vector<double>, const int&, const std::vector<atom>& , const double& );
 
-    void updatezvVEC ( const double & );
-    void updatezpVEC ( const double &, const double& );
-    void force ( std::vector<atom> const&, const double& );
-    friend double zpot(std::vector<atom> const& ,std::vector<colVar> &,const double&);
-    virtual ~colVar() {};
-};
+        void updatezvVEC ( const double & );
+        void updatezpVEC ( const double &, const double& );
+        void force ( std::vector<atom> const&, const double& );
+        friend double zpot ( std::vector<atom> const& ,std::vector<colVar> &,const double& );
+        friend double zKin(std::vector<colVar>&);
+        virtual ~colVar() {};
+    };
 
 #endif //COLLECTIVEVARIABLE_H
 // kate: indent-mode cstyle; space-indent on; indent-width 4;

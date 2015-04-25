@@ -9,4 +9,4 @@ add_executable(mdsmplay source/utils.cpp source/solution.cpp source/reading.cpp 
 endif()
 
 
-add_subdirectory(source)
+#add_subdirectory(source)
