@@ -31,11 +31,16 @@
 #include <string>
 
 
+const int SUCCESS = 0;
+const int ERROR_CLI = 1;
+const int ERROR_CFILE = 2;
+const int ERROR_NO_IDEA = 42;
 class generalInputs
 {
 
 public:
     std::vector<int> seeds;
+    int seed;
     std::ofstream log, debug;
     bool fancy;
     double TBath;
@@ -53,11 +58,13 @@ public:
     int mccycles;
     double dr;
     double rho;
-    double N;
+    int N;
     int nEquil;
     std::string filename;
     std::string xyz;
     std::string name;
+    std::string configFile;
+    std::string version="0.0.0β1";
     std::string sampler;
     std::string logf;
     std::string dbgf;

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
-#include <cstring>
+#include <boost/program_options.hpp>
 
 #include "atom.h"
 #include "utils.h"
@@ -11,7 +10,8 @@
 #include "generalinputs.h"
 #include "collectivevariable.h"
 #include "reading.h"
-
+#include "parseCLI.h"
+#include "customException.hpp"
 
 
 using namespace std;
@@ -19,190 +19,27 @@ using namespace std;
 int main ( int argc, char **argv ) {
     generalInputs inps;
 
-    inps.fancy=true;
-    inps.nSteps=100000;
-    inps.box=7.55952;
-    inps.TBath=1.0;
-    inps.dt=0.001;
-    inps.frequency=100;
-    inps.cut=2.5;
-    inps.filename="ar216.xyz";
-    inps.xyz="test.xyz";
-    inps.name="LJ";
-    inps.bin=0.001;
-    inps.Tcv=10.0;
-    inps.mccycles=1000;
-    inps.mcsteps=200;
-    inps.dr=0.2;
-    inps.T0=1.0;
-    inps.TBath=1.0;
-    inps.sampler="";
-    inps.gamma=1.0;
-    inps.gCV=10.0;
-    inps.logf="mcplay.log";
-    inps.dbgf="mcplay.debug";
-    inps.N=216;
-    inps.rho=0.5;
-    inps.mass=1.0;
-    inps.mu=1.0;
-    inps.nEquil=300;
-    inps.zk=50.0;
-    inps.shift = false;
-    inps.Nz=10;
-    inps.dtz=0.002;
-    inps.el="Ar";
-    
+  try {
+    boost::program_options::variables_map clioMap=parseCLiandConfig(argc,argv,&inps);
+    if (clioMap.count("help")) return SUCCESS;
+    if (clioMap.count("version")) {
+      std::cout<<colours::green<<"version: "<<inps.version<<colours::end<<"\n";
+      return SUCCESS;
+    }
 
+    std::cout<<colours::green<<"Echo the options used\n"<<colours::end;
+    std::string debugFile=inps.configFile+".dbg";
+    printOptions(&clioMap,&debugFile);
+  }
+  catch(customException &e) {
+    std::cerr<<colours::red<<"Error: "<< e.what() << colours::end<<"\n";
+    return e.id;
+  }
 
-    for ( int i=1; i<argc; i++ ) {
-        if ( !strcmp ( argv[i],"-steps" ) ) inps.nSteps=atoi ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-NzSteps" ) ) inps.Nz=atoi ( argv[++i] );    
-        else if ( !strcmp ( argv[i],"-L" ) ) inps.box=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-seed" ) ) inps.seeds.push_back ( atoi ( argv[++i] ) );
-        else if ( !strcmp ( argv[i],"-dt" ) ) inps.dt=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-dtz" ) ) inps.dtz=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-freq" ) ) inps.frequency=atoi ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-xyz" ) ) inps.xyz=argv[++i];
-        else if ( !strcmp ( argv[i],"-inp" ) ) inps.filename=argv[++i];
-        else if ( !strcmp ( argv[i],"-cut" ) ) inps.cut=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-T0" ) ) inps.T0=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-Tb" ) ) inps.TBath=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-Tcv" ) ) inps.Tcv=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-gamma" ) ) inps.gamma=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-gCV" ) ) inps.gCV=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-bin" ) ) inps.bin=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-fancy" ) ) inps.fancy= atoi ( argv[++i] ) !=0?true:false;
-        else if ( !strcmp ( argv[i],"-samp" ) ) inps.sampler=argv[++i];
-        else if ( !strcmp ( argv[i],"-log" ) ) inps.logf=argv[++i];
-        else if ( !strcmp ( argv[i],"-dbg" ) ) inps.dbgf=argv[++i];
-        else if ( !strcmp ( argv[i],"-name" ) ) inps.name=argv[++i];
-        else if ( !strcmp ( argv[i],"-mcsteps" ) ) inps.mcsteps=atoi ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-mccycles" ) ) inps.mccycles=atoi ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-equil" ) ) inps.nEquil=atoi ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-dr" ) ) inps.dr=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-rho" ) ) inps.rho=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-N" ) ) inps.N=atoi ( argv[++i] );        
-        else if ( !strcmp ( argv[i],"-mass" ) ) inps.mass=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-zmu" ) ) inps.mu=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-zk" ) ) inps.zk=atof ( argv[++i] );
-        else if ( !strcmp ( argv[i],"-shift" ) ) inps.shift=atoi ( argv[++i] ) !=0?true:false;
-        else if ( !strcmp ( argv[i],"-el" ) ) inps.el=argv[++i];
-        else if ( !strcmp ( argv[i],"-h" ) ) {
-            utils::Print ( "usage: ", cout,colours::red );
-            cout<<endl;
-            utils::Print ( argv[0],cout,colours::green );
-            cout <<endl;
-            utils::Print ( "-steps",cout,colours::green );
-            utils::Print ( "<int> number of steps",cout,colours::purple );
-            cout<<endl;            
-            utils::Print ( "-NzSteps",cout,colours::green );
-            utils::Print ( "<int> number of steps for z only for TAHMC",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-L",cout,colours::green );
-            utils::Print ( "<double> box size",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-N",cout,colours::green );
-            utils::Print ( "<int> number of particles to be used in simulation",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-rho",cout,colours::green );
-            utils::Print ( "<double> density of the system",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-mass",cout,colours::green );
-            utils::Print ( "<double> mass of a particle",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-seed",cout,colours::green );
-            utils::Print ( "<int> seed for random generator",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-dt" ,cout,colours::green );
-            utils::Print ( "<double> timestep for integrator",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-dtz" ,cout,colours::green );
-            utils::Print ( "<double> timestep for z integrator",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-freq",cout,colours::green );
-            utils::Print ( "<int> frequency to print xyz files",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-xyz" ,cout,colours::green );
-            utils::Print ( "<string> name of the file for animation",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-inp" ,cout,colours::green );
-            utils::Print ( "<string> name of the file with initial postitions(xyz fmt)",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-cut" ,cout,colours::green );
-            utils::Print ( "<double> cutoff for LJ",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-shift" ,cout,colours::green );
-            utils::Print ( "<int> as logical on/off energy shifting for LJ potential",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-bin" ,cout,colours::green );
-            utils::Print ( "<double> width of bin in histograms",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-T0" ,cout,colours::green );
-            utils::Print ( "<double> initial temperature of the sample",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-Tb" ,cout,colours::green );
-            utils::Print ( "<double> bath temperature",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-Tcv" ,cout,colours::green );
-            utils::Print ( "<double> collective variables bath temperature",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-gamma" ,cout,colours::green );
-            utils::Print ( "<double> friction coefficient ",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-gCV" ,cout,colours::green );
-            utils::Print ( "<double> friction coefficient for CV",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-zmu" ,cout,colours::green );
-            utils::Print ( "<double> mass for CV",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-zk" ,cout,colours::green );
-            utils::Print ( "<double> coupling contanr for CV and x",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-fancy" ,cout,colours::green );
-            utils::Print ( "<int> as logical,  enable/discable colours",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-samp" ,cout,colours::green );
-            utils::Print ( "<string> sampler available VV, VEC, TAMD, MMC, TAMC, TAHMC",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-log" ,cout,colours::green );
-            utils::Print ( "<string> name for log file ",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-dbg" ,cout,colours::green );
-            utils::Print ( "<string> name for dbg file ",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-name" ,cout,colours::green );
-            utils::Print ( "<string> systems name ",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-mcsteps",cout,colours::green );
-            utils::Print ( "<int> number of monte carlo moves",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-mccycles",cout,colours::green );
-            utils::Print ( "<int> number of monte carlo cycles",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-equil",cout,colours::green );
-            utils::Print ( "<int> number of equilibration steps",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-dr" ,cout,colours::green );
-            utils::Print ( "<double> maximum MC displacement in one direction",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-el" ,cout,colours::green );
-            utils::Print ( "<string> name for the element ",cout,colours::purple );
-            cout<<endl;
-            utils::Print ( "-h" ,cout,colours::green );
-            utils::Print ( "this help ",cout,colours::purple );
-            cout<<endl;
-            return -1;
-            }
-        }
-    if ( inps.seeds.size() ==0 ) inps.seeds.push_back ( 12345 );
+    if ( inps.seeds.size() ==0 ) inps.seeds.push_back ( inps.seed );
     inps.cut=min<double> ( inps.cut,inps.box/2.0 );
-
     vector<atom> a;
-//     vector<colVar> cv(2);
-
     inps.log.open ( inps.logf.c_str(),ios::out );
-    inps.debug.open ( inps.dbgf.c_str(),ios::out );
-
     gutenberg::timeStamp ( "start time:",inps.log );
     for ( int i=0; i<argc; i++ ) {
         utils::Print ( argv[i],inps.log,colours::yellow );
@@ -318,7 +155,6 @@ int main ( int argc, char **argv ) {
         }
     gutenberg::timeStamp ( "end time:",inps.log );
     inps.log.close();
-    inps.debug.close();
     return 0;
     }
 // kate: indent-mode cstyle; space-indent on; indent-width 4;
